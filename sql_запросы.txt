@@ -1,0 +1,46 @@
+Task_1
+
+WITH subq1 AS (
+select issue_key,
+CASE
+when issue_key LIKE 'A%' THEN 'A'
+when issue_key LIKE 'B%' THEN 'B'
+when issue_key LIKE 'C%' THEN 'C'
+when issue_key LIKE 'D%' THEN 'D'
+else 'E'
+END as class,
+SUM(minutes_in_status) AS sum_minutes_in_status
+from history
+WHERE status = 'Open'
+GROUP BY issue_key
+)
+select class,
+round(avg(sum_minutes_in_status/60.00), 2) AS avg_hour_in_status
+FROM subq1
+GROUP BY class
+
+Task_2
+
+WITH subq1 AS (
+SELECT
+issue_key,
+status,
+datetime(
+started_at / 1000, 'unixepoch', 'localtime'
+) AS started_time
+FROM
+history
+WHERE
+status != 'Closed'
+and status != 'Resolved'
+)
+SELECT
+issue_key,
+status,
+max(started_time) AS max_started
+FROM
+subq1
+WHERE
+started_time <= current_date — Для поиска открытых задач в любой момент времени в прошлом надо заменить 'current_date' на интересующую дату
+GROUP BY
+issue_key
